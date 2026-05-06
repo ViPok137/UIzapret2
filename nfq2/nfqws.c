@@ -605,10 +605,10 @@ exok:
 	res=0;
 ex:
 	if (Fpid) fclose(Fpid);
-	if (cbdata.sock>=0) close(cbdata.sock);
 	free(cbdata.mod);
 	free(buf);
 	nfq_deinit(&h, &qh);
+	if (cbdata.sock>=0) close(cbdata.sock);
 	lua_shutdown();
 #ifdef HAS_FILTER_SSID
 	wlan_info_deinit();
