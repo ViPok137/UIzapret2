@@ -296,4 +296,4 @@ v0.9.4.3
 0.9.5.3
 
 * zapret-lib,zapret-antidpi: delay parameter in "send" desync function
-* zapret-lib: fix oob urp=0 case in rawsend_dissect_segmented
+* zapret-lib: fix oob urp=b case in rawsend_dissect_segmented
