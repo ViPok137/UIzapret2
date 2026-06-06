@@ -42,6 +42,7 @@ struct timer_pool *TimerPoolSearch(timer_pool *p, const char *str)
 struct timer_pool *TimerPoolAdd(timer_pool **pp, const char *str, const char *func, uint64_t period, bool oneshot)
 {
 	ADD_STR_POOL(timer_pool, pp, str, strlen(str))
+	elem->lua_ref = LUA_NOREF;
 	if (!(elem->func = strdup(func)))
 	{
 		TimerPoolDel(pp,elem);
@@ -49,7 +50,6 @@ struct timer_pool *TimerPoolAdd(timer_pool **pp, const char *str, const char *fu
 	}
 	elem->period = period;
 	elem->oneshot = oneshot;
-	elem->lua_ref = LUA_NOREF;
 	elem->bt_next = boottime_ms() + elem->period;
 	elem->n = ++timer_n;
 	elem->fires = 0;
