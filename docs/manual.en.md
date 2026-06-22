@@ -2424,7 +2424,7 @@ function timer_set(name, func, period, oneshot, data)
 ```
 
 * name - a unique timer name. If a timer with this name already exists, it is deleted and replaced with a new one. When replaced, the countdown restarts.
-* func - the timer function name (string)
+* func - the timer function. string or function. if it's a string function is resolved during timer_set call and remembered as a function, not as a string.
 * period - the timer call frequency in milliseconds
 * oneshot - a bool indicating whether the timer is single-shot (true) or periodic (false)
 * data - an arbitrary variable passed to the [timer-function](#timer-function-prototype)
@@ -2451,7 +2451,7 @@ Returns table in case of success, nil otherwise.
 | Field   | Type   | Description  |
 | :------ | :----- | :------------------ |
 | name    | string | unique timer name |
-| func    | string | timer function name |
+| func    | function | timer function |
 | oneshot | bool   | true = single shot timer, false = periodic timer |
 | period  | number | timer period in msec |
 | fires   | number | number of timer calls made |

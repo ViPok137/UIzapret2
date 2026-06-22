@@ -307,3 +307,7 @@ v0.9.4.3
 1.0.2
 
 * nfqws2: fix 60 msec lua-gc default to 60 sec
+
+1.0.3
+
+* nfqws2: accept string or function in timer_set(). remember function as a function, not as a string.

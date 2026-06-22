@@ -3795,16 +3795,31 @@ static int luacall_timer_set(lua_State *L)
 	LUA_STACK_GUARD_ENTER(L)
 
 	int argc=lua_gettop(L);
+
 	const char *name =  luaL_checkstring(L,1);
-	const char *func =  luaL_checkstring(L,2);
 	lua_Integer period = luaL_checkinteger(L,3);
 	if (period<10) luaL_error(L,"invalid timer period. must be >=10 ms");
+
 	bool oneshot = argc>=4 && lua_toboolean(L,4);
 
-	lua_getglobal(L, func);
-	bool is_f = lua_isfunction(L, -1);
-	lua_pop(L, 1);
-	if (!is_f) luaL_error(L, "timer function '%s' does not exist", func);
+	const char *func;
+	switch(lua_type(L,2))
+	{
+		case LUA_TSTRING:
+			func = lua_tostring(L,2);
+			lua_getglobal(L, func);
+			if (!lua_isfunction(L, -1))
+			{
+				lua_pop(L, 1);
+				luaL_error(L, "timer function '%s' does not exist", func);
+			}
+			break;
+		case LUA_TFUNCTION:
+			lua_pushvalue(L, 2);
+			break;
+		default:
+			luaL_error(L,"invalid timer function type");
+	}
 
 	const char *action;
 	timer_pool *timer = TimerPoolSearch(params.timers, name);
@@ -3816,15 +3831,20 @@ static int luacall_timer_set(lua_State *L)
 	else
 		action = "created";
 
-	timer = TimerPoolAdd(&params.timers, name, func, period, oneshot);
-	if (!timer) luaL_error(L,"could not create timer");
+	timer = TimerPoolAdd(&params.timers, name, period, oneshot);
+	if (!timer)
+	{
+		lua_pop(L, 1);
+		luaL_error(L,"could not create timer");
+	}
+	timer->func_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	if (argc>=5)
 	{
 		lua_pushvalue(L, 5);
 		timer->lua_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
-	DLOG("timer: '%s' %s. function '%s' period %llu oneshot %u\n", timer->str, action, timer->func, timer->period, timer->oneshot);
+	DLOG("timer: '%s' %s. period %llu oneshot %u\n", timer->str, action, timer->period, timer->oneshot);
 	params.timers_dirty = true;
 
 	LUA_STACK_GUARD_RETURN(L,0)
@@ -3853,7 +3873,12 @@ static void lua_push_timer_info(lua_State *L, const timer_pool *timer)
 {
 	lua_newtable(L);
 	if (timer->str) lua_pushf_str(L, "name", timer->str);
-	if (timer->func) lua_pushf_str(L, "func", timer->func);
+	if (timer->func_ref!=LUA_NOREF)
+	{
+		lua_pushliteral(L, "func");
+		lua_rawgeti(L, LUA_REGISTRYINDEX, timer->func_ref);
+		lua_rawset(L,-3);
+	}
 	lua_pushf_lint(L, "period", timer->period);
 	lua_pushf_bool(L, "oneshot", timer->oneshot);
 	lua_pushf_lint(L, "fires", timer->fires);

@@ -19,8 +19,8 @@ static unsigned int timer_n=0;
 static void TimerPoolDestroyItem(timer_pool *elem)
 {
 	free(elem->str);
-	free(elem->func);
 	luaL_unref(params.L, LUA_REGISTRYINDEX, elem->lua_ref);
+	luaL_unref(params.L, LUA_REGISTRYINDEX, elem->func_ref);
 }
 void TimerPoolDel(timer_pool **pp, timer_pool *p)
 {
@@ -39,15 +39,11 @@ struct timer_pool *TimerPoolSearch(timer_pool *p, const char *str)
 	HASH_FIND_STR(p, str, elem_find);
 	return elem_find;
 }
-struct timer_pool *TimerPoolAdd(timer_pool **pp, const char *str, const char *func, uint64_t period, bool oneshot)
+struct timer_pool *TimerPoolAdd(timer_pool **pp, const char *str, uint64_t period, bool oneshot)
 {
 	ADD_STR_POOL(timer_pool, pp, str, strlen(str))
 	elem->lua_ref = LUA_NOREF;
-	if (!(elem->func = strdup(func)))
-	{
-		TimerPoolDel(pp,elem);
-		return NULL;
-	}
+	elem->func_ref = LUA_NOREF;
 	elem->period = period;
 	elem->oneshot = oneshot;
 	elem->bt_next = boottime_ms() + elem->period;
@@ -58,17 +54,11 @@ struct timer_pool *TimerPoolAdd(timer_pool **pp, const char *str, const char *fu
 
 static bool TimerPoolRunTimer(timer_pool *p)
 {
-	lua_getglobal(params.L, p->func);
-	if (!lua_isfunction(params.L, -1))
-	{
-		lua_pop(params.L, 1);
-		DLOG_ERR("timer: '%s' function '%s' does not exist\n",p->str,p->func);
-		return false;
-	}
+	lua_rawgeti(params.L, LUA_REGISTRYINDEX, p->func_ref);
 	lua_pushstring(params.L, p->str);
 	lua_rawgeti(params.L, LUA_REGISTRYINDEX, p->lua_ref);
 	p->fires++;
-	DLOG("\ntimer: '%s' function '%s' period %llu oneshot %u fires=%u\n",p->str,p->func,p->period,p->oneshot,p->fires);
+	DLOG("\ntimer: '%s' period %llu oneshot %u fires=%u\n",p->str,p->period,p->oneshot,p->fires);
 	int status = lua_pcall(params.L, 2, 0, 0);
 	if (status)
 	{
