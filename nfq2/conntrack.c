@@ -106,7 +106,7 @@ static void ConntrackInitTrack(t_ctrack *t)
 	t->l7proto = L7_UNKNOWN;
 	t->reasm_client_payload = L7P_UNKNOWN;
 	t->pos.client.scale = t->pos.server.scale = 0;
-	rawpacket_queue_init(&t->delayed);
+	rawpacket_queue_init(&t->delayed, RAW_PACKET_QUEUE_DELAYED_MAX);
 	lua_newtable(params.L);
 	t->lua_state = luaL_ref(params.L, LUA_REGISTRYINDEX);
 	lua_newtable(params.L);

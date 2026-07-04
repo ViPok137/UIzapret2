@@ -2048,7 +2048,7 @@ bool rawsend_rp(const struct rawpacket *rp)
 {
 	return rawsend((struct sockaddr*)&rp->dst,rp->fwmark,rp->ifout,rp->packet,rp->len);
 }
-bool rawsend_queue(struct rawpacket_tailhead *q)
+bool rawsend_queue(struct rawpacket_queue *q)
 {
 	struct rawpacket *rp;
 	bool b;

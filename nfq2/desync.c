@@ -705,7 +705,7 @@ static bool check_pos_range(const t_ctrack_position *pos, const struct packet_ra
 }
 
 
-static bool replay_queue(struct rawpacket_tailhead *q);
+static bool replay_queue(struct rawpacket_queue *q);
 
 static bool ipcache_put_hostname(const struct in_addr *a4, const struct in6_addr *a6, const char *hostname, bool hostname_is_ip)
 {
@@ -1583,7 +1583,10 @@ static uint8_t dpi_desync_tcp_packet_play(
 					}
 					else
 					{
+						// likely exceeded packet limit or unlikely out of memory
 						DLOG_ERR("rawpacket_queue failed !\n");
+						reasm_client_cancel(ps.ctrack);
+						ps.l7payload = L7P_UNKNOWN; // middle packet may be not L7P_TLS_CLIENT_HELLO
 						goto rediscover;
 					}
 					if (ReasmIsFull(&ps.ctrack->reasm_client))
@@ -2194,7 +2197,7 @@ uint8_t dpi_desync_packet(uint32_t fwmark, const char *ifin, const char *ifout, 
 
 
 
-static bool replay_queue(struct rawpacket_tailhead *q)
+static bool replay_queue(struct rawpacket_queue *q)
 {
 	struct rawpacket *rp;
 	size_t offset;

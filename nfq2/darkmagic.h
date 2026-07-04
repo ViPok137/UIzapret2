@@ -147,7 +147,7 @@ bool rawsend_preinit(bool bind_fix4, bool bind_fix6);
 bool rawsend(const struct sockaddr* dst,uint32_t fwmark,const char *ifout,const void *data,size_t len);
 bool rawsend_rp(const struct rawpacket *rp);
 // return trues if all packets were send successfully
-bool rawsend_queue(struct rawpacket_tailhead *q);
+bool rawsend_queue(struct rawpacket_queue *q);
 // cleans up socket autocreated by rawsend
 void rawsend_cleanup(void);
 bool rawsend_rep(int repeats, const struct sockaddr* dst, uint32_t fwmark, const char *ifout, const void *data, size_t len);
