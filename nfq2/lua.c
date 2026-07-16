@@ -3826,6 +3826,7 @@ static int luacall_timer_set(lua_State *L)
 	if (timer)
 	{
 		TimerPoolDel(&params.timers, timer);
+		params.timers_dirty = true;
 		action = "replaced";
 	}
 	else
@@ -3837,6 +3838,7 @@ static int luacall_timer_set(lua_State *L)
 		lua_pop(L, 1);
 		luaL_error(L,"could not create timer");
 	}
+	params.timers_dirty = true;
 	timer->func_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	if (argc>=5)
@@ -3845,7 +3847,6 @@ static int luacall_timer_set(lua_State *L)
 		timer->lua_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
 	DLOG("timer: '%s' %s. period %llu oneshot %u\n", timer->str, action, timer->period, timer->oneshot);
-	params.timers_dirty = true;
 
 	LUA_STACK_GUARD_RETURN(L,0)
 }

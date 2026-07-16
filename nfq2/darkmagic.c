@@ -1643,7 +1643,7 @@ static bool windivert_recv_filter(HANDLE hFilter, uint8_t *packet, size_t *len, 
 
 	if (params.timers)
 	{
-		if (!*bt_next) *bt_next = TimerPoolNext(params.timers, &params.timers_dirty);
+		if (!*bt_next || params.timers_dirty) *bt_next = TimerPoolNext(params.timers, &params.timers_dirty);
 		bt = boottime_ms();
 		tmax = *bt_next>bt ? *bt_next-bt : 0;
 		if (!tmax)

@@ -103,44 +103,59 @@ again:
 	{
 		if (bt >= elem->bt_next)
 		{
-			if (!(name = strdup(elem->str)))
-				return 0;
-			n = elem->n;
-
-			del = NULL;
-			if (!TimerPoolRunTimer(elem))
-				del = "timer: '%s' deleted because of error\n";
-
-			if (*dirty)
+			if (name = strdup(elem->str))
 			{
-				// timer function could delete the timer or recreate with the same name
-				p = TimerPoolSearch(*pp, name);
-				if (p!=elem || p->n!=n) elem = NULL; // timer deleted or recreated with the same name (but another 'n')
-			}
-			if (elem)
-			{
-				if (!del && elem->oneshot)
-					del = "timer: '%s' deleted because of oneshot\n";
-				// elem is valid, not deleted and not recreated
-				if (del)
+				n = elem->n;
+
+				del = NULL;
+				if (!TimerPoolRunTimer(elem))
+					del = "timer: '%s' deleted because of error\n";
+
+				if (*dirty)
 				{
-					DLOG(del,name);
+					// timer function could delete the timer or recreate with the same name
+					p = TimerPoolSearch(*pp, name);
+					if (p!=elem || p->n!=n) elem = NULL; // timer deleted or recreated with the same name (but another 'n')
+				}
+				if (elem)
+				{
+					if (!del && elem->oneshot)
+						del = "timer: '%s' deleted because of oneshot\n";
+					// elem is valid, not deleted and not recreated
+					if (del)
+					{
+						DLOG(del,name);
+						TimerPoolDel(pp, elem);
+						elem = NULL;
+					}
+					else
+					{
+						// in case process was freezed (--ssid-filter/nlm-filter stop in winws for example)
+						// do not use previous activation time or timer can hit multiple times
+						// use current time instead to prevent bulk activation
+						elem->bt_next = bt + elem->period;
+					}
+				}
+
+				free(name);
+
+				if (*dirty)
+					goto again; // they may have deleted or created any number of timers, HASH_ITER may fail or access invalid pointers - restart
+			}
+			else // unlikely
+			{
+				if (elem->oneshot)
+				{
+					DLOG("timer: '%s' deleted because of out of memory\n", elem->str);
 					TimerPoolDel(pp, elem);
 					elem = NULL;
 				}
 				else
 				{
-					// in case process was freezed (--ssid-filter/nlm-filter stop in winws for example)
-					// do not use previous activation time or timer can hit multiple times
-					// use current time instead to prevent bulk activation
+					DLOG("timer: '%s' skipped because of out of memory\n", elem->str);
 					elem->bt_next = bt + elem->period;
 				}
 			}
-
-			free(name);
-
-			if (*dirty)
-				goto again; // they may have deleted or created any number of timers, HASH_ITER may fail or access invalid pointers - restart
 		}
 		if (elem && (elem->bt_next < mintime)) mintime = elem->bt_next;
 	}
