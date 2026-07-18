@@ -1,0 +1,20 @@
+{
+  "version": "0.0.0",
+  "auto_update": true,
+  "selected_preset": "youtube_discord",
+  "autostart": false,
+  "update_repo_owner": "YOUR_GITHUB_USERNAME",
+  "update_repo_name": "my-zapret-core",
+  "presets": [
+    {
+      "id": "youtube_discord",
+      "name": "YouTube + Discord",
+      "args": "--wf-l3=ipv4 --wf-tcp=80,443 --wf-udp=443 --dpi-desync=split2 --dpi-desync-split-pos=2 --dpi-desync-any-protocol=1"
+    },
+    {
+      "id": "hostlist_only",
+      "name": "Только сайты из списка",
+      "args": "--wf-l3=ipv4 --wf-tcp=80,443 --hostlist=list.txt --dpi-desync=split2"
+    }
+  ]
+}

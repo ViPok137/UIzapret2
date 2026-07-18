@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Platforms>x64;AnyCPU</Platforms>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ZapretLauncher</RootNamespace>
+    <AssemblyName>ZapretLauncher</AssemblyName>
+
+    <!-- Манифест — asInvoker (НЕ requireAdministrator). Повышение прав запрашивается
+         вручную из Program.cs через ProcessStartInfo(Verb="runas"), чтобы можно было
+         перехватить отказ пользователя от UAC и показать собственное сообщение,
+         вместо того чтобы приложение просто не запустилось (см. п.3.1 ТЗ). -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <ApplicationIcon Condition="Exists('Resources\app.ico')">Resources\app.ico</ApplicationIcon>
+
+    <!-- Однофайловая публикация под Windows x64 без установленного рантайма на машине пользователя:
+         dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -->
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <Version>1.0.0</Version>
+    <Product>Zapret Launcher</Product>
+    <Company></Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Копируются рядом с exe при каждой сборке, чтобы приложение работало сразу
+         после dotnet build/publish без ручного копирования. Реальный config.json
+         пользователя (с его правками) при этом не перезаписывается билдом благодаря
+         PreserveNewest — только при отсутствии файла в выходной папке. -->
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="list.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
